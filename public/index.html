@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,30 +7,68 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <header>
-      <h1>SuperCharli Observer</h1>
-      <p>Read-only dashboard for memory, learning, and growth signals</p>
-      <button id="refreshBtn">Refresh</button>
+    <header class="topbar">
+      <div>
+        <h1>SuperCharli Observer</h1>
+        <p id="metaLine">加载中...</p>
+      </div>
+      <button id="refreshBtn">刷新</button>
     </header>
 
     <main>
-      <section class="card">
-        <h2>Summary</h2>
-        <pre id="summary">loading...</pre>
+      <section id="alert" class="alert hidden"></section>
+
+      <section class="cards" id="kpis"></section>
+
+      <section class="layout">
+        <article class="panel">
+          <h2>记忆系统</h2>
+          <div id="memoryLevels" class="cards"></div>
+          <h3>最近 L2 模式</h3>
+          <table>
+            <thead>
+              <tr><th>Key</th><th>Summary</th><th>Strength</th><th>Updated</th></tr>
+            </thead>
+            <tbody id="l2Rows"></tbody>
+          </table>
+        </article>
+
+        <article class="panel">
+          <h2>学习与成长</h2>
+          <div id="learningOverview" class="cards"></div>
+          <h3>最近学习事件</h3>
+          <table>
+            <thead>
+              <tr><th>Time</th><th>Outcome</th><th>Pattern</th><th>Route</th></tr>
+            </thead>
+            <tbody id="learningRows"></tbody>
+          </table>
+        </article>
       </section>
 
-      <section class="grid">
-        <article class="card">
-          <h3>Memory (L1/L2/L3/L4)</h3>
-          <pre id="memory"></pre>
+      <section class="layout">
+        <article class="panel">
+          <h2>运行态</h2>
+          <div id="runtimeOverview" class="cards"></div>
+          <h3>Session 分布</h3>
+          <table>
+            <thead>
+              <tr><th>Session</th><th>Turn Count</th><th>Last Active</th></tr>
+            </thead>
+            <tbody id="sessionRows"></tbody>
+          </table>
         </article>
-        <article class="card">
-          <h3>Learning</h3>
-          <pre id="learning"></pre>
-        </article>
-        <article class="card">
-          <h3>Runtime</h3>
-          <pre id="runtime"></pre>
+
+        <article class="panel">
+          <h2>路由统计</h2>
+          <table>
+            <thead>
+              <tr><th>Route</th><th>Count</th></tr>
+            </thead>
+            <tbody id="routeRows"></tbody>
+          </table>
+          <h3>Self Model</h3>
+          <pre id="selfModelBox"></pre>
         </article>
       </section>
     </main>

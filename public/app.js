@@ -1,34 +1,129 @@
 async function getJson(url) {
   const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`${url} -> ${res.status}`);
-  }
+  if (!res.ok) throw new Error(`${url} -> ${res.status}`);
   return res.json();
 }
 
-function render(id, data) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.textContent = JSON.stringify(data, null, 2);
+function byId(id) {
+  return document.getElementById(id);
+}
+
+function kpi(label, value, hint = '', cls = '') {
+  return `<div class="kpi"><div class="label">${label}</div><div class="value ${cls}">${value}</div><div class="hint">${hint}</div></div>`;
+}
+
+function fmtTime(v) {
+  if (!v) return '-';
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? String(v) : d.toLocaleString();
+}
+
+function pct(v) {
+  return `${Math.round(Number(v || 0) * 100)}%`;
+}
+
+function renderRows(id, rows, cols) {
+  const body = byId(id);
+  if (!body) return;
+  if (!rows || !rows.length) {
+    body.innerHTML = `<tr><td colspan="${cols}">暂无数据</td></tr>`;
+    return;
+  }
+  body.innerHTML = rows.join('');
+}
+
+function renderDashboard(summary, memory, learning, runtime) {
+  byId('metaLine').textContent = `DB: ${summary.dbPath} | Scope: ${summary.scope} | Updated: ${fmtTime(summary.generatedAt)}`;
+
+  const stage = summary.learningStage || 'unknown';
+  const failureRate = Number(summary.learningMetrics?.failureRate || 0);
+  const stageClass = stage === 'autonomous' ? 'good' : stage === 'apprentice' ? 'warn' : '';
+  const failClass = failureRate >= 0.4 ? 'bad' : failureRate >= 0.2 ? 'warn' : 'good';
+
+  byId('kpis').innerHTML = [
+    kpi('学习阶段', stage, 'Learning stage', stageClass),
+    kpi('策略版本', summary.policyVersion ?? '-', 'policyVersion'),
+    kpi('Rollout', summary.rollout?.enabled ? `ON ${pct(summary.rollout.ratio)}` : 'OFF', summary.rollout?.note || ''),
+    kpi('会话数', summary.sessionCount ?? 0, 'active sessions'),
+    kpi('成功率', pct(summary.learningMetrics?.successRate), `total=${summary.learningMetrics?.total || 0}`),
+    kpi('失败率', pct(summary.learningMetrics?.failureRate), `repeated=${summary.learningMetrics?.repeated || 0}`, failClass),
+  ].join('');
+
+  byId('memoryLevels').innerHTML = [
+    kpi('L1 会话记忆', memory.counts?.l1 ?? 0, 'recent events'),
+    kpi('L2 长期记忆', memory.counts?.l2 ?? 0, 'patterns'),
+    kpi('L3 里程碑', memory.counts?.l3 ?? 0, 'timeline'),
+    kpi('L4 身份层', memory.counts?.l4 ?? 0, 'identity values'),
+  ].join('');
+
+  renderRows(
+    'l2Rows',
+    (memory.l2 || []).slice(0, 8).map((x) =>
+      `<tr><td>${x.key || '-'}</td><td>${x.summary || '-'}</td><td>${Number(x.strength || 0).toFixed(2)}</td><td>${fmtTime(x.updatedAt)}</td></tr>`,
+    ),
+    4,
+  );
+
+  byId('learningOverview').innerHTML = [
+    kpi('最近事件', learning.metrics?.total ?? 0, 'window=60'),
+    kpi('候选策略', (learning.candidates || []).length, 'candidates'),
+    kpi('当前路由占比', (runtime.routeStats || []).map((x) => `${x.route}:${x.count}`).join(' | ') || '-', 'route mix'),
+    kpi('自检状态', runtime.selfModel?.lastAuditStatus || '-', `gate pass/fail: ${runtime.selfModel?.gatePassCount || 0}/${runtime.selfModel?.gateFailCount || 0}`),
+  ].join('');
+
+  renderRows(
+    'learningRows',
+    (learning.events || []).slice(0, 10).map((e) =>
+      `<tr><td>${fmtTime(e.ts)}</td><td>${e.outcome}</td><td>${e.patternKey}</td><td>${e.route}</td></tr>`,
+    ),
+    4,
+  );
+
+  byId('runtimeOverview').innerHTML = [
+    kpi('Top Session', summary.topSession?.sessionId || '-', `turns=${summary.topSession?.turnCount || 0}`),
+    kpi('最近活动', fmtTime(summary.topSession?.lastAt), 'last session activity'),
+    kpi('Self Stage', runtime.selfModel?.stage || '-', 'self model stage'),
+    kpi('Identity', runtime.selfModel?.identity || 'SuperCharli', 'primary identity'),
+  ].join('');
+
+  renderRows(
+    'sessionRows',
+    (runtime.sessions || []).slice(0, 10).map((s) =>
+      `<tr><td>${s.sessionId}</td><td>${s.turnCount}</td><td>${fmtTime(s.lastAt)}</td></tr>`,
+    ),
+    3,
+  );
+
+  renderRows(
+    'routeRows',
+    (runtime.routeStats || []).map((r) => `<tr><td>${r.route}</td><td>${r.count}</td></tr>`),
+    2,
+  );
+
+  byId('selfModelBox').textContent = JSON.stringify(runtime.selfModel || {}, null, 2);
 }
 
 async function refresh() {
+  const alert = byId('alert');
+  alert.classList.add('hidden');
   try {
-    const [summary, memory, learning, runtime] = await Promise.all([
+    const [summaryRes, memoryRes, learningRes, runtimeRes] = await Promise.all([
       getJson('/api/observer/summary'),
       getJson('/api/observer/memory'),
       getJson('/api/observer/learning'),
       getJson('/api/observer/runtime'),
     ]);
 
-    render('summary', summary.data || summary);
-    render('memory', memory.data || memory);
-    render('learning', learning.data || learning);
-    render('runtime', runtime.data || runtime);
+    const summary = summaryRes.data || {};
+    const memory = memoryRes.data || {};
+    const learning = learningRes.data || {};
+    const runtime = runtimeRes.data || {};
+    renderDashboard(summary, memory, learning, runtime);
   } catch (err) {
-    render('summary', { ok: false, error: err.message });
+    alert.textContent = `加载失败: ${err.message}`;
+    alert.classList.remove('hidden');
   }
 }
 
-document.getElementById('refreshBtn')?.addEventListener('click', refresh);
+byId('refreshBtn')?.addEventListener('click', refresh);
 refresh();

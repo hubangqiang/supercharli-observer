@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SuperCharli Observer</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>SuperCharli Observer</h1>
+      <p>Read-only dashboard for memory, learning, and growth signals</p>
+      <button id="refreshBtn">Refresh</button>
+    </header>
+
+    <main>
+      <section class="card">
+        <h2>Summary</h2>
+        <pre id="summary">loading...</pre>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <h3>Memory (L1/L2/L3/L4)</h3>
+          <pre id="memory"></pre>
+        </article>
+        <article class="card">
+          <h3>Learning</h3>
+          <pre id="learning"></pre>
+        </article>
+        <article class="card">
+          <h3>Runtime</h3>
+          <pre id="runtime"></pre>
+        </article>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

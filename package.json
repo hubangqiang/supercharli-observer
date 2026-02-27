@@ -1,0 +1,12 @@
+{
+  "name": "supercharli-observer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Read-only observer dashboard for SuperCharli memory, learning, and growth signals",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

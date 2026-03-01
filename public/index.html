@@ -55,6 +55,25 @@
 
       <section class="layout">
         <article class="panel">
+          <h2>注入 Skill 观测</h2>
+          <div id="skillOverview" class="cards"></div>
+          <h3>当前 Skill Catalog</h3>
+          <table>
+            <thead>
+              <tr><th>Skill ID</th><th>Seen</th><th>Last Seen</th><th>Preview</th></tr>
+            </thead>
+            <tbody id="skillCatalogRows"></tbody>
+          </table>
+          <h3>Skill 注入历史</h3>
+          <table>
+            <thead>
+              <tr><th>Time</th><th>Session</th><th>Route/Model</th><th>Skills</th></tr>
+            </thead>
+            <tbody id="skillHistoryRows"></tbody>
+          </table>
+        </article>
+
+        <article class="panel">
           <h2>运行态</h2>
           <div id="runtimeOverview" class="cards"></div>
           <h3>Session 分布</h3>

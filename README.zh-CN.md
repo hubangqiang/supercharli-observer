@@ -30,3 +30,4 @@ npm start
 - `/api/observer/learning`
 - `/api/observer/runtime`
 - `/api/observer/sessions`
+- `/api/observer/skills`

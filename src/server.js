@@ -267,7 +267,46 @@ function readRuntime(db) {
   };
 }
 
-function buildSummary(memory, learning, runtime) {
+function readSkills(db) {
+  const catalog = tableExists(db, 'prompt_skill_catalog')
+    ? safeAll(
+        db,
+        `SELECT skill_id AS skillId, latest_hash AS latestHash, latest_preview AS latestPreview,
+                first_seen_at AS firstSeenAt, last_seen_at AS lastSeenAt, seen_count AS seenCount
+         FROM prompt_skill_catalog
+         ORDER BY last_seen_at DESC
+         LIMIT 80`,
+      )
+    : [];
+
+  const history = tableExists(db, 'prompt_skill_history')
+    ? safeAll(
+        db,
+        `SELECT id, created_at AS createdAt, session_id AS sessionId, trace_id AS traceId, route,
+                model_provider AS modelProvider, model_name AS modelName,
+                prompt_tokens_used AS promptTokensUsed, dropped_packs AS droppedPacks,
+                loaded_skill_ids_json AS loadedSkillIdsJson, loaded_skills_json AS loadedSkillsJson
+         FROM prompt_skill_history
+         ORDER BY id DESC
+         LIMIT 120`,
+      ).map((row) => ({
+        ...row,
+        loadedSkillIds: parseJson(row.loadedSkillIdsJson, []),
+        loadedSkills: parseJson(row.loadedSkillsJson, []),
+      }))
+    : [];
+
+  return {
+    catalog,
+    history,
+    counts: {
+      current: catalog.length,
+      history: history.length,
+    },
+  };
+}
+
+function buildSummary(memory, learning, runtime, skills) {
   return {
     dbPath: DB_PATH,
     scope: LEARNING_SCOPE,
@@ -280,6 +319,8 @@ function buildSummary(memory, learning, runtime) {
     sessionCount: runtime.sessions.length,
     topSession: runtime.sessions[0] || null,
     selfAudit: runtime.selfModel?.lastAuditStatus || null,
+    skillCount: skills?.counts?.current || 0,
+    skillHistoryCount: skills?.counts?.history || 0,
   };
 }
 
@@ -330,12 +371,14 @@ function handler(req, res) {
       const memory = readMemory(db);
       const learning = readLearning(db);
       const runtime = readRuntime(db);
-      const summary = buildSummary(memory, learning, runtime);
+      const skills = readSkills(db);
+      const summary = buildSummary(memory, learning, runtime, skills);
 
       if (pathname === '/api/observer/summary') return json(res, 200, { ok: true, data: summary });
       if (pathname === '/api/observer/memory') return json(res, 200, { ok: true, data: memory });
       if (pathname === '/api/observer/learning') return json(res, 200, { ok: true, data: learning });
       if (pathname === '/api/observer/runtime') return json(res, 200, { ok: true, data: runtime });
+      if (pathname === '/api/observer/skills') return json(res, 200, { ok: true, data: skills });
       if (pathname === '/api/observer/sessions') return json(res, 200, { ok: true, data: runtime.sessions });
 
       return json(res, 404, { ok: false, error: 'unknown endpoint' });

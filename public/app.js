@@ -32,7 +32,7 @@ function renderRows(id, rows, cols) {
   body.innerHTML = rows.join('');
 }
 
-function renderDashboard(summary, memory, learning, runtime) {
+function renderDashboard(summary, memory, learning, runtime, skills) {
   byId('metaLine').textContent = `DB: ${summary.dbPath} | Scope: ${summary.scope} | Updated: ${fmtTime(summary.generatedAt)}`;
 
   const stage = summary.learningStage || 'unknown';
@@ -47,6 +47,8 @@ function renderDashboard(summary, memory, learning, runtime) {
     kpi('会话数', summary.sessionCount ?? 0, 'active sessions'),
     kpi('成功率', pct(summary.learningMetrics?.successRate), `total=${summary.learningMetrics?.total || 0}`),
     kpi('失败率', pct(summary.learningMetrics?.failureRate), `repeated=${summary.learningMetrics?.repeated || 0}`, failClass),
+    kpi('当前 Skill', summary.skillCount ?? 0, 'injection catalog'),
+    kpi('Skill 历史', summary.skillHistoryCount ?? 0, 'injection events'),
   ].join('');
 
   byId('memoryLevels').innerHTML = [
@@ -95,6 +97,34 @@ function renderDashboard(summary, memory, learning, runtime) {
     kpi('Identity', runtime.selfModel?.identity || 'SuperCharli', 'primary identity'),
   ].join('');
 
+  byId('skillOverview').innerHTML = [
+    kpi('Skill Catalog', skills.counts?.current ?? 0, 'current injected skill set'),
+    kpi('注入历史', skills.counts?.history ?? 0, 'latest 120 events'),
+    kpi(
+      '最近注入',
+      skills.history?.[0]?.loadedSkillIds?.length ?? 0,
+      `tokens=${skills.history?.[0]?.promptTokensUsed ?? 0}`,
+    ),
+  ].join('');
+
+  renderRows(
+    'skillCatalogRows',
+    (skills.catalog || []).slice(0, 20).map((s) =>
+      `<tr><td>${s.skillId || '-'}</td><td>${s.seenCount ?? 0}</td><td>${fmtTime(s.lastSeenAt)}</td><td>${s.latestPreview || '-'}</td></tr>`,
+    ),
+    4,
+  );
+
+  renderRows(
+    'skillHistoryRows',
+    (skills.history || []).slice(0, 20).map((h) => {
+      const ids = Array.isArray(h.loadedSkillIds) ? h.loadedSkillIds.join(', ') : '-';
+      const routeModel = `${h.route || '-'} / ${h.modelProvider || '-'}:${h.modelName || '-'}`;
+      return `<tr><td>${fmtTime(h.createdAt)}</td><td>${h.sessionId || '-'}</td><td>${routeModel}</td><td>${ids}</td></tr>`;
+    }),
+    4,
+  );
+
   renderRows(
     'sessionRows',
     (runtime.sessions || []).slice(0, 10).map((s) =>
@@ -116,18 +146,20 @@ async function refresh() {
   const alert = byId('alert');
   alert.classList.add('hidden');
   try {
-    const [summaryRes, memoryRes, learningRes, runtimeRes] = await Promise.all([
+    const [summaryRes, memoryRes, learningRes, runtimeRes, skillsRes] = await Promise.all([
       getJson('/api/observer/summary'),
       getJson('/api/observer/memory'),
       getJson('/api/observer/learning'),
       getJson('/api/observer/runtime'),
+      getJson('/api/observer/skills'),
     ]);
 
     const summary = summaryRes.data || {};
     const memory = memoryRes.data || {};
     const learning = learningRes.data || {};
     const runtime = runtimeRes.data || {};
-    renderDashboard(summary, memory, learning, runtime);
+    const skills = skillsRes.data || {};
+    renderDashboard(summary, memory, learning, runtime, skills);
   } catch (err) {
     alert.textContent = `加载失败: ${err.message}`;
     alert.classList.remove('hidden');

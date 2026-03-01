@@ -268,7 +268,7 @@ function readRuntime(db) {
 }
 
 function readSkills(db) {
-  const catalog = tableExists(db, 'prompt_skill_catalog')
+  const injectionCatalog = tableExists(db, 'prompt_skill_catalog')
     ? safeAll(
         db,
         `SELECT skill_id AS skillId, latest_hash AS latestHash, latest_preview AS latestPreview,
@@ -279,7 +279,7 @@ function readSkills(db) {
       )
     : [];
 
-  const history = tableExists(db, 'prompt_skill_history')
+  const injectionHistory = tableExists(db, 'prompt_skill_history')
     ? safeAll(
         db,
         `SELECT id, created_at AS createdAt, session_id AS sessionId, trace_id AS traceId, route,
@@ -296,12 +296,42 @@ function readSkills(db) {
       }))
     : [];
 
+  const managedCatalog = tableExists(db, 'skill_library')
+    ? safeAll(
+        db,
+        `SELECT skill_id AS skillId, title, applicability, method, boundaries, confidence, source, status,
+                created_at AS createdAt, updated_at AS updatedAt, last_used_at AS lastUsedAt, use_count AS useCount
+         FROM skill_library
+         ORDER BY updated_at DESC
+         LIMIT 80`,
+      )
+    : [];
+
+  const managedHistory = tableExists(db, 'skill_usage_history')
+    ? safeAll(
+        db,
+        `SELECT id, created_at AS createdAt, session_id AS sessionId, trace_id AS traceId, route,
+                model_provider AS modelProvider, model_name AS modelName,
+                skill_ids_json AS skillIdsJson, reason
+         FROM skill_usage_history
+         ORDER BY id DESC
+         LIMIT 120`,
+      ).map((row) => ({
+        ...row,
+        skillIds: parseJson(row.skillIdsJson, []),
+      }))
+    : [];
+
   return {
-    catalog,
-    history,
+    injectionCatalog,
+    injectionHistory,
+    managedCatalog,
+    managedHistory,
     counts: {
-      current: catalog.length,
-      history: history.length,
+      current: injectionCatalog.length,
+      history: injectionHistory.length,
+      managedCurrent: managedCatalog.length,
+      managedHistory: managedHistory.length,
     },
   };
 }
@@ -321,6 +351,8 @@ function buildSummary(memory, learning, runtime, skills) {
     selfAudit: runtime.selfModel?.lastAuditStatus || null,
     skillCount: skills?.counts?.current || 0,
     skillHistoryCount: skills?.counts?.history || 0,
+    managedSkillCount: skills?.counts?.managedCurrent || 0,
+    managedSkillHistoryCount: skills?.counts?.managedHistory || 0,
   };
 }
 

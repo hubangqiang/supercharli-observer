@@ -7,6 +7,7 @@ Read-only web observer for SuperCharli runtime data.
 - Learning overview: events, metrics, stage, candidate, policy version, rollout
 - Runtime overview: session activity, route stats, self model snapshot
 - Skill injection overview: current skill catalog + historical injection events
+- Managed skill overview: local skill assets + usage history
 
 This repo is **observer-only** and does not write back to SuperCharli core data.
 

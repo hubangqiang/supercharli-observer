@@ -98,18 +98,15 @@ function renderDashboard(summary, memory, learning, runtime, skills) {
   ].join('');
 
   byId('skillOverview').innerHTML = [
-    kpi('Skill Catalog', skills.counts?.current ?? 0, 'current injected skill set'),
-    kpi('注入历史', skills.counts?.history ?? 0, 'latest 120 events'),
-    kpi(
-      '最近注入',
-      skills.history?.[0]?.loadedSkillIds?.length ?? 0,
-      `tokens=${skills.history?.[0]?.promptTokensUsed ?? 0}`,
-    ),
+    kpi('注入 Skill', skills.counts?.current ?? 0, 'current injected packs'),
+    kpi('注入历史', skills.counts?.history ?? 0, 'latest injection events'),
+    kpi('管理 Skill', skills.counts?.managedCurrent ?? 0, 'method assets'),
+    kpi('管理历史', skills.counts?.managedHistory ?? 0, 'usage history'),
   ].join('');
 
   renderRows(
     'skillCatalogRows',
-    (skills.catalog || []).slice(0, 20).map((s) =>
+    (skills.injectionCatalog || []).slice(0, 20).map((s) =>
       `<tr><td>${s.skillId || '-'}</td><td>${s.seenCount ?? 0}</td><td>${fmtTime(s.lastSeenAt)}</td><td>${s.latestPreview || '-'}</td></tr>`,
     ),
     4,
@@ -117,8 +114,26 @@ function renderDashboard(summary, memory, learning, runtime, skills) {
 
   renderRows(
     'skillHistoryRows',
-    (skills.history || []).slice(0, 20).map((h) => {
+    (skills.injectionHistory || []).slice(0, 20).map((h) => {
       const ids = Array.isArray(h.loadedSkillIds) ? h.loadedSkillIds.join(', ') : '-';
+      const routeModel = `${h.route || '-'} / ${h.modelProvider || '-'}:${h.modelName || '-'}`;
+      return `<tr><td>${fmtTime(h.createdAt)}</td><td>${h.sessionId || '-'}</td><td>${routeModel}</td><td>${ids}</td></tr>`;
+    }),
+    4,
+  );
+
+  renderRows(
+    'managedSkillRows',
+    (skills.managedCatalog || []).slice(0, 20).map((s) =>
+      `<tr><td>${s.skillId || '-'}</td><td>${s.title || '-'}</td><td>${s.useCount ?? 0}</td><td>${fmtTime(s.updatedAt)}</td></tr>`,
+    ),
+    4,
+  );
+
+  renderRows(
+    'managedSkillHistoryRows',
+    (skills.managedHistory || []).slice(0, 20).map((h) => {
+      const ids = Array.isArray(h.skillIds) ? h.skillIds.join(', ') : '-';
       const routeModel = `${h.route || '-'} / ${h.modelProvider || '-'}:${h.modelName || '-'}`;
       return `<tr><td>${fmtTime(h.createdAt)}</td><td>${h.sessionId || '-'}</td><td>${routeModel}</td><td>${ids}</td></tr>`;
     }),

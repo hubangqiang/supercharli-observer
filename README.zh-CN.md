@@ -31,3 +31,7 @@ npm start
 - `/api/observer/runtime`
 - `/api/observer/sessions`
 - `/api/observer/skills`
+
+`/api/observer/skills` 同时包含：
+- 注入 skill（prompt pack）目录与注入历史
+- 管理 skill（方法资产）目录与使用历史

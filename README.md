@@ -9,6 +9,13 @@ Read-only web observer for SuperCharli runtime data.
 
 This repo is **observer-only** and does not write back to SuperCharli core data.
 
+## Augmentation Boundary
+- This repository does not replace or replicate large-model intelligence.
+- It visualizes local continuity/governance signals (memory and learning state).
+- It must stay read-only against SuperCharli core runtime state.
+
+中文说明：`README.zh-CN.md`
+
 ## Run
 ```bash
 cd /Users/apple/Documents/code/supercharli-observer

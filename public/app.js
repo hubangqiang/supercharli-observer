@@ -43,6 +43,45 @@ function zhOutcome(v) {
   return map[String(v || '').toLowerCase()] || String(v || '-');
 }
 
+function zhSkillPreview(skillId, preview) {
+  const id = String(skillId || '').trim().toLowerCase();
+  const text = String(preview || '').trim();
+  const preset = {
+    'core-constraints': '核心约束：保持超级查理身份与安全边界；大模型负责推理与生成；本地只做记忆/学习增强与治理；不输出伪确定性与内部标签。',
+    'persona-short': '人格约束：固定超级查理主身份；角色/性格/背景为硬约束；对事不对人；禁止羞辱、人身攻击与自伤引导。',
+    'style-short': '表达风格：根据用户状态自适应结构；简洁专业；避免模板化重复；聚焦可执行建议与清晰判断。',
+    'style-full': '表达风格（增强）：在人性化与理性之间平衡；按场景调整语气与结构；保持专业与可执行性。',
+    'memory-pack': '记忆注入：基于近期会话与长期模式提供上下文，仅作为增强参考，不替代模型推理。',
+    'dynamic-skills-pack': '动态技能包：按当前问题匹配本地方法资产，按需注入，不做固定答案套用。',
+    'risk-pack': '风险包：在高风险场景优先低风险、可回滚、可验证动作。',
+  };
+  if (preset[id]) return preset[id];
+  return zhCommonText(text);
+}
+
+function zhCommonText(text) {
+  if (!text) return '-';
+  return String(text)
+    .replace(/Core constraints/gi, '核心约束')
+    .replace(/Identity invariants/gi, '身份约束')
+    .replace(/Style runtime/gi, '风格运行时')
+    .replace(/Memory focus pack/gi, '记忆注入包')
+    .replace(/Maintain SuperCharli identity and safety boundaries/gi, '保持超级查理身份与安全边界')
+    .replace(/External model does reasoning\/generation/gi, '外部模型负责推理与生成')
+    .replace(/local memory\/learning are augmentation and governance signals/gi, '本地记忆/学习仅作增强与治理信号')
+    .replace(/No fabricated certainty/gi, '禁止伪造确定性')
+    .replace(/No internal labels in final ans/gi, '最终回答不输出内部标签')
+    .replace(/Mode/gi, '模式')
+    .replace(/tone/gi, '语气')
+    .replace(/stage/gi, '阶段')
+    .replace(/bias/gi, '偏置')
+    .replace(/Focus mode/gi, '专注模式')
+    .replace(/work execution priority/gi, '工作执行优先')
+    .replace(/Use concise professional sentences/gi, '使用简洁专业表达')
+    .replace(/adapt structure to user intent/gi, '根据用户意图调整结构')
+    .replace(/no fixed format mandate/gi, '不强制固定格式');
+}
+
 function renderRows(id, rows, cols) {
   const body = byId(id);
   if (!body) return;
@@ -128,7 +167,7 @@ function renderDashboard(summary, memory, learning, runtime, skills) {
   renderRows(
     'skillCatalogRows',
     (skills.injectionCatalog || []).slice(0, 20).map((s) =>
-      `<tr><td>${s.skillId || '-'}</td><td>${s.seenCount ?? 0}</td><td>${fmtTime(s.lastSeenAt)}</td><td>${s.latestPreview || '-'}</td></tr>`,
+      `<tr><td>${s.skillId || '-'}</td><td>${s.seenCount ?? 0}</td><td>${fmtTime(s.lastSeenAt)}</td><td>${zhSkillPreview(s.skillId, s.latestPreview)}</td></tr>`,
     ),
     4,
   );

@@ -150,13 +150,18 @@ function readLearning(db) {
   const candidates = tableExists(db, 'learning_candidates')
     ? safeAll(
         db,
-        `SELECT id, created_at AS createdAt, gate_json AS gateJson, status
+        `SELECT id, created_at AS createdAt, event_json AS eventJson, gate_json AS gateJson, proposed_policy_json AS proposedPolicyJson, status
          FROM learning_candidates
          WHERE scope = ?
          ORDER BY id DESC
          LIMIT 20`,
         [LEARNING_SCOPE],
-      ).map((row) => ({ ...row, gate: parseJson(row.gateJson, {}) }))
+      ).map((row) => ({
+        ...row,
+        event: parseJson(row.eventJson, {}),
+        gate: parseJson(row.gateJson, {}),
+        proposedPolicy: parseJson(row.proposedPolicyJson, {}),
+      }))
     : [];
 
   const policyVersion = tableExists(db, 'learning_policy_versions')

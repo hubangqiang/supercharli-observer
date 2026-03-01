@@ -79,6 +79,15 @@ function renderDashboard(summary, memory, learning, runtime) {
     4,
   );
 
+  renderRows(
+    'candidateRows',
+    (learning.candidates || []).slice(0, 10).map((c) => {
+      const ev = c.event || {};
+      return `<tr><td>${fmtTime(c.createdAt)}</td><td>${ev.patternKey || '-'}</td><td>${ev.summary || '-'}</td><td>${ev.strategy || '-'}</td></tr>`;
+    }),
+    4,
+  );
+
   byId('runtimeOverview').innerHTML = [
     kpi('Top Session', summary.topSession?.sessionId || '-', `turns=${summary.topSession?.turnCount || 0}`),
     kpi('最近活动', fmtTime(summary.topSession?.lastAt), 'last session activity'),

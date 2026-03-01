@@ -3,13 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SuperCharli Observer</title>
+    <title>超级查理观测台</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <header class="topbar">
       <div>
-        <h1>SuperCharli Observer</h1>
+        <h1>超级查理观测台</h1>
         <p id="metaLine">加载中...</p>
       </div>
       <button id="refreshBtn">刷新</button>
@@ -27,7 +27,7 @@
           <h3>最近 L2 模式</h3>
           <table>
             <thead>
-              <tr><th>Key</th><th>Summary</th><th>Strength</th><th>Updated</th></tr>
+              <tr><th>键名</th><th>摘要</th><th>强度</th><th>更新时间</th></tr>
             </thead>
             <tbody id="l2Rows"></tbody>
           </table>
@@ -39,14 +39,14 @@
           <h3>最近学习事件</h3>
           <table>
             <thead>
-              <tr><th>Time</th><th>Outcome</th><th>Pattern</th><th>Route</th></tr>
+              <tr><th>时间</th><th>结果</th><th>模式</th><th>路由</th></tr>
             </thead>
             <tbody id="learningRows"></tbody>
           </table>
           <h3>学习候选（模型提炼）</h3>
           <table>
             <thead>
-              <tr><th>Time</th><th>Pattern</th><th>Summary</th><th>Strategy</th></tr>
+              <tr><th>时间</th><th>模式</th><th>摘要</th><th>策略</th></tr>
             </thead>
             <tbody id="candidateRows"></tbody>
           </table>
@@ -55,33 +55,33 @@
 
       <section class="layout">
         <article class="panel">
-          <h2>注入 Skill 观测</h2>
+          <h2>注入技能观测</h2>
           <div id="skillOverview" class="cards"></div>
-          <h3>当前 Skill Catalog</h3>
+          <h3>当前 Skill 目录</h3>
           <table>
             <thead>
-              <tr><th>Skill ID</th><th>Seen</th><th>Last Seen</th><th>Preview</th></tr>
+              <tr><th>Skill 标识</th><th>出现次数</th><th>最近出现</th><th>预览</th></tr>
             </thead>
             <tbody id="skillCatalogRows"></tbody>
           </table>
           <h3>Skill 注入历史</h3>
           <table>
             <thead>
-              <tr><th>Time</th><th>Session</th><th>Route/Model</th><th>Skills</th></tr>
+              <tr><th>时间</th><th>会话</th><th>路由/模型</th><th>技能集合</th></tr>
             </thead>
             <tbody id="skillHistoryRows"></tbody>
           </table>
           <h3>管理中 Skill（方法资产）</h3>
           <table>
             <thead>
-              <tr><th>Skill ID</th><th>Title</th><th>Use</th><th>Updated</th></tr>
+              <tr><th>Skill 标识</th><th>标题</th><th>使用次数</th><th>更新时间</th></tr>
             </thead>
             <tbody id="managedSkillRows"></tbody>
           </table>
           <h3>管理 Skill 使用历史</h3>
           <table>
             <thead>
-              <tr><th>Time</th><th>Session</th><th>Route/Model</th><th>Skill IDs</th></tr>
+              <tr><th>时间</th><th>会话</th><th>路由/模型</th><th>Skill 标识</th></tr>
             </thead>
             <tbody id="managedSkillHistoryRows"></tbody>
           </table>
@@ -90,10 +90,10 @@
         <article class="panel">
           <h2>运行态</h2>
           <div id="runtimeOverview" class="cards"></div>
-          <h3>Session 分布</h3>
+          <h3>会话分布</h3>
           <table>
             <thead>
-              <tr><th>Session</th><th>Turn Count</th><th>Last Active</th></tr>
+              <tr><th>会话</th><th>轮次数</th><th>最近活跃</th></tr>
             </thead>
             <tbody id="sessionRows"></tbody>
           </table>
@@ -103,11 +103,11 @@
           <h2>路由统计</h2>
           <table>
             <thead>
-              <tr><th>Route</th><th>Count</th></tr>
+              <tr><th>路由</th><th>次数</th></tr>
             </thead>
             <tbody id="routeRows"></tbody>
           </table>
-          <h3>Self Model</h3>
+          <h3>自我模型</h3>
           <pre id="selfModelBox"></pre>
         </article>
       </section>

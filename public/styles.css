@@ -170,3 +170,46 @@ pre {
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+.skill-module-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.skill-tab {
+  background: #132742;
+  border: 1px solid #335273;
+  color: #d7ebff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.skill-tab.active {
+  background: linear-gradient(135deg, #48a8ff, #63d9ff);
+  color: #052238;
+  border-color: transparent;
+}
+
+.skill-tab-panel { display: none; }
+.skill-tab-panel.active { display: block; }
+
+.skill-filters {
+  display: grid;
+  grid-template-columns: minmax(260px, 2fr) minmax(120px, 1fr) minmax(120px, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.skill-filters input,
+.skill-filters select {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: #0f1b2d;
+  color: var(--text);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+}

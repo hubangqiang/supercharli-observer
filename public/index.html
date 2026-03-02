@@ -57,29 +57,101 @@
         <article class="panel">
           <h2>注入技能观测</h2>
           <div id="skillOverview" class="cards"></div>
-          <h3>会话与对应注入 Skill</h3>
-          <table>
-            <thead>
-              <tr><th>会话</th><th>最近注入时间</th><th>路由/模型</th><th>注入 Skill</th></tr>
-            </thead>
-            <tbody id="sessionSkillRows"></tbody>
-          </table>
-          <h3>管理中 Skill（方法资产）</h3>
-          <div id="managedSkillCards" class="skill-cards"></div>
-          <h3>管理 Skill 使用历史</h3>
-          <table>
-            <thead>
-              <tr><th>时间</th><th>会话</th><th>路由/模型</th><th>Skill 标识</th></tr>
-            </thead>
-            <tbody id="managedSkillHistoryRows"></tbody>
-          </table>
-          <h3>生命周期迁移历史</h3>
-          <table>
-            <thead>
-              <tr><th>时间</th><th>Skill 标识</th><th>迁移</th><th>原因</th></tr>
-            </thead>
-            <tbody id="skillLifecycleRows"></tbody>
-          </table>
+          <div class="skill-module-tabs">
+            <button class="skill-tab active" data-skill-tab="overview">总览</button>
+            <button class="skill-tab" data-skill-tab="catalog">目录</button>
+            <button class="skill-tab" data-skill-tab="lifecycle">生命周期</button>
+            <button class="skill-tab" data-skill-tab="conflicts">冲突与组合</button>
+            <button class="skill-tab" data-skill-tab="audit">审计</button>
+          </div>
+
+          <div class="skill-tab-panel active" id="skill-tab-overview">
+            <h3>会话与对应注入 Skill</h3>
+            <table>
+              <thead>
+                <tr><th>会话</th><th>最近注入时间</th><th>路由/模型</th><th>注入 Skill</th></tr>
+              </thead>
+              <tbody id="sessionSkillRows"></tbody>
+            </table>
+            <h3>资产健康概览</h3>
+            <div id="skillAssetOverviewCards" class="cards"></div>
+            <h3>高风险 Skill（优先处理）</h3>
+            <table>
+              <thead>
+                <tr><th>Skill</th><th>质量</th><th>失败率</th><th>使用次数</th><th>建议</th></tr>
+              </thead>
+              <tbody id="skillRiskRows"></tbody>
+            </table>
+          </div>
+
+          <div class="skill-tab-panel" id="skill-tab-catalog">
+            <h3>管理中 Skill（方法资产目录）</h3>
+            <div class="skill-filters">
+              <input id="skillSearchInput" type="text" placeholder="搜索 skillId / 标题 / 场景 / 方法 / 边界 / 标签" />
+              <select id="skillLifecycleFilter">
+                <option value="">全部生命周期</option>
+                <option value="active">生效</option>
+                <option value="shadow">灰度</option>
+                <option value="candidate">候选</option>
+                <option value="deprecated">弃用</option>
+                <option value="archived">归档</option>
+              </select>
+              <select id="skillTypeFilter">
+                <option value="">全部类型</option>
+                <option value="meta">meta</option>
+                <option value="domain">domain</option>
+                <option value="style">style</option>
+                <option value="tool">tool</option>
+              </select>
+            </div>
+            <div id="managedSkillCards" class="skill-cards"></div>
+          </div>
+
+          <div class="skill-tab-panel" id="skill-tab-lifecycle">
+            <h3>生命周期漏斗</h3>
+            <div id="skillLifecycleCards" class="cards"></div>
+            <h3>生命周期迁移历史</h3>
+            <table>
+              <thead>
+                <tr><th>时间</th><th>Skill 标识</th><th>迁移</th><th>原因</th></tr>
+              </thead>
+              <tbody id="skillLifecycleRows"></tbody>
+            </table>
+          </div>
+
+          <div class="skill-tab-panel" id="skill-tab-conflicts">
+            <h3>高频组合 Skill</h3>
+            <table>
+              <thead>
+                <tr><th>组合</th><th>共现次数</th><th>最近出现</th></tr>
+              </thead>
+              <tbody id="skillComboRows"></tbody>
+            </table>
+            <h3>潜在冲突 Skill（近似）</h3>
+            <table>
+              <thead>
+                <tr><th>冲突组合</th><th>冲突信号</th><th>说明</th></tr>
+              </thead>
+              <tbody id="skillConflictRows"></tbody>
+            </table>
+          </div>
+
+          <div class="skill-tab-panel" id="skill-tab-audit">
+            <h3>管理 Skill 使用历史</h3>
+            <table>
+              <thead>
+                <tr><th>时间</th><th>会话</th><th>路由/模型</th><th>Skill 标识</th></tr>
+              </thead>
+              <tbody id="managedSkillHistoryRows"></tbody>
+            </table>
+            <h3>审计时间线（使用 + 迁移）</h3>
+            <table>
+              <thead>
+                <tr><th>时间</th><th>事件类型</th><th>Skill</th><th>详情</th></tr>
+              </thead>
+              <tbody id="skillAuditRows"></tbody>
+            </table>
+          </div>
         </article>
 
         <article class="panel">

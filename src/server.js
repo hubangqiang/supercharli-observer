@@ -299,12 +299,14 @@ function readSkills(db) {
   const managedCatalog = tableExists(db, 'skill_library')
     ? safeAll(
         db,
-        `SELECT skill_id AS skillId, title, applicability, method, boundaries, confidence, source, status,
-                created_at AS createdAt, updated_at AS updatedAt, last_used_at AS lastUsedAt, use_count AS useCount
+        `SELECT skill_id AS skillId, title, applicability, method, boundaries, skill_type AS skillType,
+                scenario_tags_json AS scenarioTagsJson, injection_budget AS injectionBudget, version, lifecycle,
+                quality_score AS qualityScore, evidence_count AS evidenceCount, success_count AS successCount, fail_count AS failCount,
+                confidence, source, status, created_at AS createdAt, updated_at AS updatedAt, last_used_at AS lastUsedAt, use_count AS useCount
          FROM skill_library
          ORDER BY updated_at DESC
          LIMIT 80`,
-      )
+      ).map((row) => ({ ...row, scenarioTags: parseJson(row.scenarioTagsJson, []) }))
     : [];
 
   const managedHistory = tableExists(db, 'skill_usage_history')
@@ -322,11 +324,31 @@ function readSkills(db) {
       }))
     : [];
 
+  const lifecycleHistory = tableExists(db, 'skill_lifecycle_history')
+    ? safeAll(
+        db,
+        `SELECT created_at AS createdAt, skill_id AS skillId, from_state AS fromState, to_state AS toState, reason
+         FROM skill_lifecycle_history
+         ORDER BY id DESC
+         LIMIT 120`,
+      )
+    : [];
+
+  const lifecycleCounts = {
+    candidate: managedCatalog.filter((x) => x.lifecycle === 'candidate').length,
+    shadow: managedCatalog.filter((x) => x.lifecycle === 'shadow').length,
+    active: managedCatalog.filter((x) => x.lifecycle === 'active').length,
+    deprecated: managedCatalog.filter((x) => x.lifecycle === 'deprecated').length,
+    archived: managedCatalog.filter((x) => x.lifecycle === 'archived').length,
+  };
+
   return {
     injectionCatalog,
     injectionHistory,
     managedCatalog,
     managedHistory,
+    lifecycleHistory,
+    lifecycleCounts,
     counts: {
       current: injectionCatalog.length,
       history: injectionHistory.length,

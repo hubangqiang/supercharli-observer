@@ -43,6 +43,17 @@ function zhOutcome(v) {
   return map[String(v || '').toLowerCase()] || String(v || '-');
 }
 
+function zhLifecycle(v) {
+  const map = {
+    candidate: '候选',
+    shadow: '灰度',
+    active: '生效',
+    deprecated: '弃用',
+    archived: '归档',
+  };
+  return map[String(v || '').toLowerCase()] || String(v || '-');
+}
+
 function zhSkillPreview(skillId, preview) {
   const id = String(skillId || '').trim().toLowerCase();
   const text = String(preview || '').trim();
@@ -162,6 +173,9 @@ function renderDashboard(summary, memory, learning, runtime, skills) {
     kpi('注入历史', skills.counts?.history ?? 0, '最近注入事件'),
     kpi('管理技能', skills.counts?.managedCurrent ?? 0, '方法资产'),
     kpi('管理历史', skills.counts?.managedHistory ?? 0, '使用历史'),
+    kpi('候选', skills.lifecycleCounts?.candidate ?? 0, 'candidate'),
+    kpi('灰度', skills.lifecycleCounts?.shadow ?? 0, 'shadow'),
+    kpi('生效', skills.lifecycleCounts?.active ?? 0, 'active'),
   ].join('');
 
   renderRows(
@@ -185,9 +199,9 @@ function renderDashboard(summary, memory, learning, runtime, skills) {
   renderRows(
     'managedSkillRows',
     (skills.managedCatalog || []).slice(0, 20).map((s) =>
-      `<tr><td>${s.skillId || '-'}</td><td>${s.title || '-'}</td><td>${s.useCount ?? 0}</td><td>${fmtTime(s.updatedAt)}</td></tr>`,
+      `<tr><td>${s.skillId || '-'}</td><td>${s.title || '-'}</td><td>${zhLifecycle(s.lifecycle)}</td><td>${Number(s.qualityScore || 0).toFixed(2)}</td><td>${s.useCount ?? 0}</td><td>${fmtTime(s.updatedAt)}</td></tr>`,
     ),
-    4,
+    6,
   );
 
   renderRows(
@@ -197,6 +211,14 @@ function renderDashboard(summary, memory, learning, runtime, skills) {
       const routeModel = `${zhRoute(h.route)} / ${h.modelProvider || '-'}:${h.modelName || '-'}`;
       return `<tr><td>${fmtTime(h.createdAt)}</td><td>${h.sessionId || '-'}</td><td>${routeModel}</td><td>${ids}</td></tr>`;
     }),
+    4,
+  );
+
+  renderRows(
+    'skillLifecycleRows',
+    (skills.lifecycleHistory || []).slice(0, 20).map((h) =>
+      `<tr><td>${fmtTime(h.createdAt)}</td><td>${h.skillId || '-'}</td><td>${zhLifecycle(h.fromState)} -> ${zhLifecycle(h.toState)}</td><td>${h.reason || '-'}</td></tr>`,
+    ),
     4,
   );
 

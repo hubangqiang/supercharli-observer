@@ -110,6 +110,44 @@ function renderManagedSkillCards(skills) {
   }).join('');
 }
 
+function buildSessionSkillRows(injectionHistory = []) {
+  const grouped = new Map();
+  for (const h of injectionHistory) {
+    const sessionId = String(h.sessionId || '').trim() || 'unknown';
+    const current = grouped.get(sessionId) || {
+      sessionId,
+      lastAt: null,
+      route: '-',
+      modelProvider: '-',
+      modelName: '-',
+      skills: new Set(),
+    };
+    const ts = h.createdAt ? new Date(h.createdAt).getTime() : 0;
+    const prev = current.lastAt ? new Date(current.lastAt).getTime() : 0;
+    if (!current.lastAt || ts > prev) {
+      current.lastAt = h.createdAt;
+      current.route = h.route || '-';
+      current.modelProvider = h.modelProvider || '-';
+      current.modelName = h.modelName || '-';
+    }
+    const ids = Array.isArray(h.loadedSkillIds) ? h.loadedSkillIds : [];
+    for (const id of ids) current.skills.add(String(id || '').trim());
+    grouped.set(sessionId, current);
+  }
+  return Array.from(grouped.values())
+    .sort((a, b) => {
+      const ta = a.lastAt ? new Date(a.lastAt).getTime() : 0;
+      const tb = b.lastAt ? new Date(b.lastAt).getTime() : 0;
+      return tb - ta;
+    })
+    .map((x) => ({
+      sessionId: x.sessionId,
+      lastAt: x.lastAt,
+      routeModel: `${zhRoute(x.route)} / ${x.modelProvider}:${x.modelName}`,
+      skillText: Array.from(x.skills).filter(Boolean).join(', ') || '-',
+    }));
+}
+
 function zhSkillPreview(skillId, preview) {
   const id = String(skillId || '').trim().toLowerCase();
   const text = String(preview || '').trim();
@@ -235,20 +273,10 @@ function renderDashboard(summary, memory, learning, runtime, skills) {
   ].join('');
 
   renderRows(
-    'skillCatalogRows',
-    (skills.injectionCatalog || []).slice(0, 20).map((s) =>
-      `<tr><td>${s.skillId || '-'}</td><td>${s.seenCount ?? 0}</td><td>${fmtTime(s.lastSeenAt)}</td><td>${zhSkillPreview(s.skillId, s.latestPreview)}</td></tr>`,
+    'sessionSkillRows',
+    buildSessionSkillRows(skills.injectionHistory || []).slice(0, 30).map((x) =>
+      `<tr><td>${x.sessionId}</td><td>${fmtTime(x.lastAt)}</td><td>${x.routeModel}</td><td>${x.skillText}</td></tr>`,
     ),
-    4,
-  );
-
-  renderRows(
-    'skillHistoryRows',
-    (skills.injectionHistory || []).slice(0, 20).map((h) => {
-      const ids = Array.isArray(h.loadedSkillIds) ? h.loadedSkillIds.join(', ') : '-';
-      const routeModel = `${zhRoute(h.route)} / ${h.modelProvider || '-'}:${h.modelName || '-'}`;
-      return `<tr><td>${fmtTime(h.createdAt)}</td><td>${h.sessionId || '-'}</td><td>${routeModel}</td><td>${ids}</td></tr>`;
-    }),
     4,
   );
 

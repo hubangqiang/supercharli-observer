@@ -57,19 +57,12 @@
         <article class="panel">
           <h2>注入技能观测</h2>
           <div id="skillOverview" class="cards"></div>
-          <h3>当前 Skill 目录</h3>
+          <h3>会话与对应注入 Skill</h3>
           <table>
             <thead>
-              <tr><th>Skill 标识</th><th>出现次数</th><th>最近出现</th><th>预览</th></tr>
+              <tr><th>会话</th><th>最近注入时间</th><th>路由/模型</th><th>注入 Skill</th></tr>
             </thead>
-            <tbody id="skillCatalogRows"></tbody>
-          </table>
-          <h3>Skill 注入历史</h3>
-          <table>
-            <thead>
-              <tr><th>时间</th><th>会话</th><th>路由/模型</th><th>技能集合</th></tr>
-            </thead>
-            <tbody id="skillHistoryRows"></tbody>
+            <tbody id="sessionSkillRows"></tbody>
           </table>
           <h3>管理中 Skill（方法资产）</h3>
           <div id="managedSkillCards" class="skill-cards"></div>

@@ -52,6 +52,7 @@ main { padding: 16px; display: grid; gap: 16px; }
 }
 .panel h2, .panel h3 { margin: 0 0 10px; }
 .panel h3 { margin-top: 14px; font-size: 14px; color: var(--muted); }
+.panel-priority { min-height: 760px; }
 
 .kpi {
   background: var(--panel2);

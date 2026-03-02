@@ -98,3 +98,75 @@ pre {
   border-radius: 10px;
 }
 .hidden { display: none; }
+
+.skill-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.skill-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #0f1b2d;
+  padding: 10px;
+}
+
+.skill-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.skill-card-title {
+  margin: 0;
+  font-size: 15px;
+}
+
+.skill-card-id {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.skill-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.skill-badge {
+  font-size: 11px;
+  color: #bfe5ff;
+  border: 1px solid #335273;
+  background: #132742;
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.skill-grid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px 12px;
+}
+
+.skill-item {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.skill-item .label {
+  color: var(--muted);
+  margin-right: 6px;
+}
+
+.skill-text {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

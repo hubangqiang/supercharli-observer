@@ -54,6 +54,62 @@ function zhLifecycle(v) {
   return map[String(v || '').toLowerCase()] || String(v || '-');
 }
 
+function esc(s) {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function renderManagedSkillCards(skills) {
+  const box = byId('managedSkillCards');
+  if (!box) return;
+  if (!Array.isArray(skills) || !skills.length) {
+    box.innerHTML = '<div class="skill-card"><div class="skill-card-id">暂无数据</div></div>';
+    return;
+  }
+
+  box.innerHTML = skills.slice(0, 30).map((s) => {
+    const tags = Array.isArray(s.scenarioTags) ? s.scenarioTags : [];
+    const tagText = tags.length ? tags.map((t) => `<span class="skill-badge">${esc(t)}</span>`).join('') : '<span class="skill-badge">无标签</span>';
+    const quality = Number(s.qualityScore || 0).toFixed(2);
+    const confidence = Number(s.confidence || 0).toFixed(2);
+    return `
+      <article class="skill-card">
+        <div class="skill-card-top">
+          <div>
+            <h4 class="skill-card-title">${esc(s.title || '未命名 Skill')}</h4>
+            <div class="skill-card-id">${esc(s.skillId || '-')}</div>
+          </div>
+          <div class="skill-badges">
+            <span class="skill-badge">${zhLifecycle(s.lifecycle)}</span>
+            <span class="skill-badge">${esc(s.skillType || 'domain')}</span>
+            <span class="skill-badge">v${esc(s.version ?? 1)}</span>
+          </div>
+        </div>
+        <div class="skill-grid">
+          <div class="skill-item"><span class="label">质量:</span>${quality}</div>
+          <div class="skill-item"><span class="label">置信度:</span>${confidence}</div>
+          <div class="skill-item"><span class="label">使用次数:</span>${esc(s.useCount ?? 0)}</div>
+          <div class="skill-item"><span class="label">证据数:</span>${esc(s.evidenceCount ?? 0)}</div>
+          <div class="skill-item"><span class="label">成功/失败:</span>${esc(s.successCount ?? 0)} / ${esc(s.failCount ?? 0)}</div>
+          <div class="skill-item"><span class="label">注入预算:</span>${esc(s.injectionBudget ?? '-')} tokens</div>
+          <div class="skill-item"><span class="label">来源:</span>${esc(s.source || '-')}</div>
+          <div class="skill-item"><span class="label">状态:</span>${esc(s.status || '-')}</div>
+          <div class="skill-item"><span class="label">最近更新:</span>${esc(fmtTime(s.updatedAt))}</div>
+          <div class="skill-item"><span class="label">最近使用:</span>${esc(fmtTime(s.lastUsedAt))}</div>
+        </div>
+        <div class="skill-text"><span class="label">适用场景:</span>${esc(zhCommonText(s.applicability || '-'))}</div>
+        <div class="skill-text"><span class="label">执行方法:</span>${esc(zhCommonText(s.method || '-'))}</div>
+        <div class="skill-text"><span class="label">边界约束:</span>${esc(zhCommonText(s.boundaries || '-'))}</div>
+        <div class="skill-text"><span class="label">场景标签:</span>${tagText}</div>
+      </article>
+    `;
+  }).join('');
+}
+
 function zhSkillPreview(skillId, preview) {
   const id = String(skillId || '').trim().toLowerCase();
   const text = String(preview || '').trim();
@@ -196,13 +252,7 @@ function renderDashboard(summary, memory, learning, runtime, skills) {
     4,
   );
 
-  renderRows(
-    'managedSkillRows',
-    (skills.managedCatalog || []).slice(0, 20).map((s) =>
-      `<tr><td>${s.skillId || '-'}</td><td>${s.title || '-'}</td><td>${zhLifecycle(s.lifecycle)}</td><td>${Number(s.qualityScore || 0).toFixed(2)}</td><td>${s.useCount ?? 0}</td><td>${fmtTime(s.updatedAt)}</td></tr>`,
-    ),
-    6,
-  );
+  renderManagedSkillCards(skills.managedCatalog || []);
 
   renderRows(
     'managedSkillHistoryRows',

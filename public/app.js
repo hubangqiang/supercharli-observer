@@ -98,11 +98,42 @@ function renderRows(id, rows, cols) {
 
 function zhProcessPhase(phase) {
   const map = {
+    'user-message': '用户消息',
     'skill-routing': '路由决策',
+    'internal-skill-router-request': '隐式查询请求',
+    'internal-skill-router-response': '隐式查询响应',
+    'internal-skill-load': '隐式加载确认',
+    'internal-skill-fallback': '本地兜底',
+    'internal-skill-router-skipped': '路由跳过',
     'skill-injection': '注入执行',
     'skill-usage-eval': '结果评估',
+    'assistant-message': '助手回复',
   };
   return map[String(phase || '').toLowerCase()] || String(phase || '-');
+}
+
+function processDetailPreview(phase, data) {
+  const d = data && typeof data === 'object' ? data : {};
+  if (phase === 'user-message' || phase === 'assistant-message') return clip(String(d.text || '-'), 220);
+  if (phase === 'internal-skill-router-request') return clip(String(d.prompt || '-'), 220);
+  if (phase === 'internal-skill-router-response') return clip(String(d.raw || '-'), 220);
+  if (phase === 'internal-skill-load' || phase === 'skill-routing') {
+    const ids = Array.isArray(d.selectedSkillIds) ? d.selectedSkillIds.join(', ') : '-';
+    return `skills: ${ids}`;
+  }
+  if (phase === 'skill-injection') {
+    const ids = Array.isArray(d.appliedSkillIds) ? d.appliedSkillIds.join(', ') : '-';
+    return `applied: ${ids}; tokens=${d.promptTokensUsed ?? 0}`;
+  }
+  if (phase === 'skill-usage-eval') {
+    return `score=${Number(d.responseScore || 0).toFixed(2)} pass=${Boolean(d.qualityPass)}`;
+  }
+  return clip(JSON.stringify(d), 220);
+}
+
+function clip(text, max = 200) {
+  const s = String(text || '');
+  return s.length <= max ? s : `${s.slice(0, max)}...(截断)`;
 }
 
 function buildSessionSkillRows(injectionHistory = []) {
@@ -370,8 +401,8 @@ function renderSkillAssetModule(skills) {
     (skills.processTrace || []).slice(0, 120).map((p) => {
       const routeModel = `${zhRoute(p.route)} / ${p.modelProvider || '-'}:${p.modelName || '-'}`;
       const trace = `${p.sessionId || '-'} / ${p.traceId || '-'}`;
-      const detail = esc(JSON.stringify(p.data || {}));
-      return `<tr><td>${fmtTime(p.createdAt)}</td><td>${trace}</td><td>${zhProcessPhase(p.phase)}</td><td>${routeModel}</td><td><code>${detail}</code></td></tr>`;
+      const detail = esc(processDetailPreview(p.phase, p.data));
+      return `<tr><td>${fmtTime(p.createdAt)}</td><td>${trace}</td><td>${zhProcessPhase(p.phase)}</td><td>${routeModel}</td><td>${detail}</td></tr>`;
     }),
     5,
   );
@@ -402,6 +433,14 @@ function renderSkillAssetModule(skills) {
       type: '迁移',
       skill: h.skillId || '-',
       detail: `${zhLifecycle(h.fromState)} -> ${zhLifecycle(h.toState)} | ${h.reason || '-'}`,
+    });
+  }
+  for (const p of (skills.processTrace || []).slice(0, 120)) {
+    auditTimeline.push({
+      createdAt: p.createdAt,
+      type: zhProcessPhase(p.phase),
+      skill: p.traceId || '-',
+      detail: processDetailPreview(p.phase, p.data),
     });
   }
   auditTimeline.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());

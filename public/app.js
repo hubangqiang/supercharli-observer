@@ -96,6 +96,15 @@ function renderRows(id, rows, cols) {
   body.innerHTML = rows.join('');
 }
 
+function zhProcessPhase(phase) {
+  const map = {
+    'skill-routing': '路由决策',
+    'skill-injection': '注入执行',
+    'skill-usage-eval': '结果评估',
+  };
+  return map[String(phase || '').toLowerCase()] || String(phase || '-');
+}
+
 function buildSessionSkillRows(injectionHistory = []) {
   const grouped = new Map();
   for (const h of injectionHistory) {
@@ -357,6 +366,17 @@ function renderSkillAssetModule(skills) {
   );
 
   renderRows(
+    'skillProcessRows',
+    (skills.processTrace || []).slice(0, 120).map((p) => {
+      const routeModel = `${zhRoute(p.route)} / ${p.modelProvider || '-'}:${p.modelName || '-'}`;
+      const trace = `${p.sessionId || '-'} / ${p.traceId || '-'}`;
+      const detail = esc(JSON.stringify(p.data || {}));
+      return `<tr><td>${fmtTime(p.createdAt)}</td><td>${trace}</td><td>${zhProcessPhase(p.phase)}</td><td>${routeModel}</td><td><code>${detail}</code></td></tr>`;
+    }),
+    5,
+  );
+
+  renderRows(
     'managedSkillHistoryRows',
     (skills.managedHistory || []).slice(0, 50).map((h) => {
       const ids = Array.isArray(h.skillIds) ? h.skillIds.join(', ') : '-';
@@ -473,6 +493,7 @@ function renderDashboard(summary, memory, learning, runtime, skills) {
     kpi('注入历史', skills.counts?.history ?? 0, '最近注入事件'),
     kpi('管理技能', skills.counts?.managedCurrent ?? 0, '方法资产'),
     kpi('管理历史', skills.counts?.managedHistory ?? 0, '使用历史'),
+    kpi('过程追踪', skills.counts?.processTrace ?? 0, '内部链路事件'),
     kpi('候选', skills.lifecycleCounts?.candidate ?? 0, 'candidate'),
     kpi('灰度', skills.lifecycleCounts?.shadow ?? 0, 'shadow'),
     kpi('生效', skills.lifecycleCounts?.active ?? 0, 'active'),

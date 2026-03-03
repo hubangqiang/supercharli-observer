@@ -334,6 +334,20 @@ function readSkills(db) {
       )
     : [];
 
+  const processTrace = tableExists(db, 'skill_process_trace')
+    ? safeAll(
+        db,
+        `SELECT created_at AS createdAt, session_id AS sessionId, trace_id AS traceId, phase, route,
+                model_provider AS modelProvider, model_name AS modelName, data_json AS dataJson
+         FROM skill_process_trace
+         ORDER BY id DESC
+         LIMIT 200`,
+      ).map((row) => ({
+        ...row,
+        data: parseJson(row.dataJson, {}),
+      }))
+    : [];
+
   const lifecycleCounts = {
     candidate: managedCatalog.filter((x) => x.lifecycle === 'candidate').length,
     shadow: managedCatalog.filter((x) => x.lifecycle === 'shadow').length,
@@ -348,12 +362,14 @@ function readSkills(db) {
     managedCatalog,
     managedHistory,
     lifecycleHistory,
+    processTrace,
     lifecycleCounts,
     counts: {
       current: injectionCatalog.length,
       history: injectionHistory.length,
       managedCurrent: managedCatalog.length,
       managedHistory: managedHistory.length,
+      processTrace: processTrace.length,
     },
   };
 }

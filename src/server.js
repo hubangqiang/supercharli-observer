@@ -220,7 +220,7 @@ function readLearning(db) {
 }
 
 function readRuntime(db) {
-  const sessionTop = tableExists(db, 'l1_events')
+  const sessionTopL1 = tableExists(db, 'l1_events')
     ? safeAll(
         db,
         `SELECT session_id AS sessionId, COUNT(*) AS turnCount, MAX(created_at) AS lastAt
@@ -230,6 +230,43 @@ function readRuntime(db) {
          LIMIT 20`,
       )
     : [];
+
+  const sessionTopTrace = tableExists(db, 'skill_process_trace')
+    ? safeAll(
+        db,
+        `SELECT session_id AS sessionId, COUNT(*) AS traceCount, MAX(created_at) AS lastAt
+         FROM skill_process_trace
+         GROUP BY session_id
+         ORDER BY lastAt DESC
+         LIMIT 200`,
+      )
+    : [];
+
+  const sessionMap = new Map();
+  for (const row of sessionTopL1) {
+    const id = String(row.sessionId || '');
+    if (!id) continue;
+    sessionMap.set(id, {
+      sessionId: id,
+      turnCount: Number(row.turnCount || 0),
+      traceCount: 0,
+      lastAt: row.lastAt,
+    });
+  }
+  for (const row of sessionTopTrace) {
+    const id = String(row.sessionId || '');
+    if (!id) continue;
+    const current = sessionMap.get(id) || { sessionId: id, turnCount: 0, traceCount: 0, lastAt: null };
+    current.traceCount = Number(row.traceCount || 0);
+    const l1Ts = current.lastAt ? new Date(current.lastAt).getTime() : 0;
+    const traceTs = row.lastAt ? new Date(row.lastAt).getTime() : 0;
+    if (traceTs > l1Ts) current.lastAt = row.lastAt;
+    sessionMap.set(id, current);
+  }
+
+  const sessionTop = Array.from(sessionMap.values()).sort(
+    (a, b) => new Date(b.lastAt || 0).getTime() - new Date(a.lastAt || 0).getTime(),
+  ).slice(0, 200);
 
   const routeStats = tableExists(db, 'learning_events')
     ? safeAll(
@@ -394,6 +431,63 @@ function buildSummary(memory, learning, runtime, skills) {
   };
 }
 
+function readSessionTimeline(db, sessionId, limit = 400) {
+  const sid = String(sessionId || '').trim();
+  if (!sid) return [];
+
+  const processRows = tableExists(db, 'skill_process_trace')
+    ? safeAll(
+        db,
+        `SELECT created_at AS createdAt, session_id AS sessionId, trace_id AS traceId, phase, route,
+                model_provider AS modelProvider, model_name AS modelName, data_json AS dataJson
+         FROM skill_process_trace
+         WHERE session_id = ?
+         ORDER BY created_at ASC
+         LIMIT ?`,
+        [sid, Math.max(20, Number(limit) || 400)],
+      ).map((row) => ({
+        source: 'process',
+        createdAt: row.createdAt,
+        sessionId: row.sessionId,
+        traceId: row.traceId,
+        phase: row.phase,
+        route: row.route,
+        modelProvider: row.modelProvider,
+        modelName: row.modelName,
+        data: parseJson(row.dataJson, {}),
+      }))
+    : [];
+
+  const l1Rows = tableExists(db, 'l1_events')
+    ? safeAll(
+        db,
+        `SELECT created_at AS createdAt, session_id AS sessionId, trace_id AS traceId, text, severity
+         FROM l1_events
+         WHERE session_id = ?
+         ORDER BY created_at ASC
+         LIMIT ?`,
+        [sid, Math.max(20, Number(limit) || 400)],
+      ).map((row) => ({
+        source: 'l1',
+        createdAt: row.createdAt,
+        sessionId: row.sessionId,
+        traceId: row.traceId,
+        phase: 'user-message-legacy',
+        route: '',
+        modelProvider: '',
+        modelName: '',
+        data: {
+          text: row.text,
+          severity: row.severity,
+        },
+      }))
+    : [];
+
+  return processRows.concat(l1Rows).sort(
+    (a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime(),
+  );
+}
+
 function json(res, statusCode, payload) {
   res.writeHead(statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(JSON.stringify(payload, null, 2));
@@ -450,6 +544,11 @@ function handler(req, res) {
       if (pathname === '/api/observer/runtime') return json(res, 200, { ok: true, data: runtime });
       if (pathname === '/api/observer/skills') return json(res, 200, { ok: true, data: skills });
       if (pathname === '/api/observer/sessions') return json(res, 200, { ok: true, data: runtime.sessions });
+      if (pathname === '/api/observer/session-timeline') {
+        const sessionId = url.searchParams.get('sessionId') || '';
+        const limit = Number(url.searchParams.get('limit') || 400);
+        return json(res, 200, { ok: true, data: readSessionTimeline(db, sessionId, limit) });
+      }
 
       return json(res, 404, { ok: false, error: 'unknown endpoint' });
     } catch (err) {

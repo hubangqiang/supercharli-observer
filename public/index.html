@@ -8,184 +8,121 @@
   </head>
   <body>
     <header class="topbar">
-      <div>
-        <h1>超级查理观测台</h1>
-        <p id="metaLine">加载中...</p>
+      <div class="topbar-left">
+        <button id="navToggleBtn" class="ghost-btn">导航</button>
+        <div>
+          <h1>超级查理观测台</h1>
+          <p id="metaLine">加载中...</p>
+        </div>
       </div>
       <button id="refreshBtn">刷新</button>
     </header>
 
-    <main>
-      <section id="alert" class="alert hidden"></section>
+    <main id="appRoot" class="app-layout">
+      <aside id="sidebar" class="sidebar">
+        <button class="nav-item active" data-page="overview">运行总览</button>
+        <button class="nav-item" data-page="sessions">会话动态</button>
+        <button class="nav-item" data-page="memory">记忆系统</button>
+        <button class="nav-item" data-page="learning">学习系统</button>
+        <button class="nav-item" data-page="skills">Skill 资产库</button>
+        <button class="nav-item" data-page="audit">系统审计</button>
+      </aside>
 
-      <section class="cards" id="kpis"></section>
+      <section class="content">
+        <section id="alert" class="alert hidden"></section>
 
-      <section class="layout">
-        <article class="panel panel-priority">
-          <h2>注入技能观测</h2>
-          <div id="skillOverview" class="cards"></div>
-          <div class="skill-module-tabs">
-            <button class="skill-tab active" data-skill-tab="overview">总览</button>
-            <button class="skill-tab" data-skill-tab="catalog">目录</button>
-            <button class="skill-tab" data-skill-tab="lifecycle">生命周期</button>
-            <button class="skill-tab" data-skill-tab="conflicts">冲突与组合</button>
-            <button class="skill-tab" data-skill-tab="audit">审计</button>
+        <section id="page-overview" class="page active">
+          <h2>运行总览</h2>
+          <div id="overviewKpis" class="cards"></div>
+          <div class="layout cols-2">
+            <article class="panel">
+              <h3>路由统计</h3>
+              <table>
+                <thead><tr><th>路由</th><th>次数</th></tr></thead>
+                <tbody id="overviewRouteRows"></tbody>
+              </table>
+            </article>
+            <article class="panel">
+              <h3>最近会话</h3>
+              <table>
+                <thead><tr><th>会话</th><th>轮次</th><th>最近活跃</th></tr></thead>
+                <tbody id="overviewSessionRows"></tbody>
+              </table>
+            </article>
           </div>
+        </section>
 
-          <div class="skill-tab-panel active" id="skill-tab-overview">
-            <h3>会话与对应注入 Skill</h3>
-            <table>
-              <thead>
-                <tr><th>会话</th><th>最近注入时间</th><th>路由/模型</th><th>注入 Skill</th></tr>
-              </thead>
-              <tbody id="sessionSkillRows"></tbody>
-            </table>
-            <h3>资产健康概览</h3>
-            <div id="skillAssetOverviewCards" class="cards"></div>
-            <h3>高风险 Skill（优先处理）</h3>
-            <table>
-              <thead>
-                <tr><th>Skill</th><th>质量</th><th>失败率</th><th>使用次数</th><th>建议</th></tr>
-              </thead>
-              <tbody id="skillRiskRows"></tbody>
-            </table>
+        <section id="page-sessions" class="page">
+          <h2>会话动态</h2>
+          <div class="session-layout">
+            <article class="panel online-panel">
+              <h3>在线会话（10分钟内）</h3>
+              <div id="onlineSessionsList" class="session-list"></div>
+            </article>
+            <article class="panel timeline-panel">
+              <h3 id="timelineTitle">会话时间线</h3>
+              <div id="timelineContainer" class="timeline"></div>
+            </article>
           </div>
+        </section>
 
-          <div class="skill-tab-panel" id="skill-tab-catalog">
-            <h3>管理中 Skill（方法资产目录）</h3>
-            <div class="skill-filters">
-              <input id="skillSearchInput" type="text" placeholder="搜索 skillId / 标题 / 场景 / 方法 / 边界 / 标签" />
-              <select id="skillLifecycleFilter">
-                <option value="">全部生命周期</option>
-                <option value="active">生效</option>
-                <option value="shadow">灰度</option>
-                <option value="candidate">候选</option>
-                <option value="deprecated">弃用</option>
-                <option value="archived">归档</option>
-              </select>
-              <select id="skillTypeFilter">
-                <option value="">全部类型</option>
-                <option value="meta">meta</option>
-                <option value="domain">domain</option>
-                <option value="style">style</option>
-                <option value="tool">tool</option>
-              </select>
-            </div>
-            <div id="managedSkillCards" class="skill-cards"></div>
-          </div>
-
-          <div class="skill-tab-panel" id="skill-tab-lifecycle">
-            <h3>生命周期漏斗</h3>
-            <div id="skillLifecycleCards" class="cards"></div>
-            <h3>生命周期迁移历史</h3>
-            <table>
-              <thead>
-                <tr><th>时间</th><th>Skill 标识</th><th>迁移</th><th>原因</th></tr>
-              </thead>
-              <tbody id="skillLifecycleRows"></tbody>
-            </table>
-          </div>
-
-          <div class="skill-tab-panel" id="skill-tab-conflicts">
-            <h3>高频组合 Skill</h3>
-            <table>
-              <thead>
-                <tr><th>组合</th><th>共现次数</th><th>最近出现</th></tr>
-              </thead>
-              <tbody id="skillComboRows"></tbody>
-            </table>
-            <h3>潜在冲突 Skill（近似）</h3>
-            <table>
-              <thead>
-                <tr><th>冲突组合</th><th>冲突信号</th><th>说明</th></tr>
-              </thead>
-              <tbody id="skillConflictRows"></tbody>
-            </table>
-          </div>
-
-          <div class="skill-tab-panel" id="skill-tab-audit">
-            <h3>Skill 全过程追踪（内部链路）</h3>
-            <table>
-              <thead>
-                <tr><th>时间</th><th>会话/Trace</th><th>阶段</th><th>路由/模型</th><th>数据</th></tr>
-              </thead>
-              <tbody id="skillProcessRows"></tbody>
-            </table>
-            <h3>管理 Skill 使用历史</h3>
-            <table>
-              <thead>
-                <tr><th>时间</th><th>会话</th><th>路由/模型</th><th>Skill 标识</th></tr>
-              </thead>
-              <tbody id="managedSkillHistoryRows"></tbody>
-            </table>
-            <h3>审计时间线（使用 + 迁移）</h3>
-            <table>
-              <thead>
-                <tr><th>时间</th><th>事件类型</th><th>Skill</th><th>详情</th></tr>
-              </thead>
-              <tbody id="skillAuditRows"></tbody>
-            </table>
-          </div>
-        </article>
-      </section>
-
-      <section class="layout">
-        <article class="panel">
+        <section id="page-memory" class="page">
           <h2>记忆系统</h2>
-          <div id="memoryLevels" class="cards"></div>
-          <h3>最近 L2 模式</h3>
-          <table>
-            <thead>
-              <tr><th>键名</th><th>摘要</th><th>强度</th><th>更新时间</th></tr>
-            </thead>
-            <tbody id="l2Rows"></tbody>
-          </table>
-        </article>
+          <div id="memoryKpis" class="cards"></div>
+          <article class="panel">
+            <h3>最近 L2 模式</h3>
+            <table>
+              <thead><tr><th>键名</th><th>摘要</th><th>强度</th><th>更新时间</th></tr></thead>
+              <tbody id="memoryL2Rows"></tbody>
+            </table>
+          </article>
+        </section>
 
-        <article class="panel">
-          <h2>学习与成长</h2>
-          <div id="learningOverview" class="cards"></div>
-          <h3>最近学习事件</h3>
-          <table>
-            <thead>
-              <tr><th>时间</th><th>结果</th><th>模式</th><th>路由</th></tr>
-            </thead>
-            <tbody id="learningRows"></tbody>
-          </table>
-          <h3>学习候选（模型提炼）</h3>
-          <table>
-            <thead>
-              <tr><th>时间</th><th>模式</th><th>摘要</th><th>策略</th></tr>
-            </thead>
-            <tbody id="candidateRows"></tbody>
-          </table>
-        </article>
-      </section>
+        <section id="page-learning" class="page">
+          <h2>学习系统</h2>
+          <div id="learningKpis" class="cards"></div>
+          <article class="panel">
+            <h3>最近学习事件</h3>
+            <table>
+              <thead><tr><th>时间</th><th>结果</th><th>模式</th><th>路由</th></tr></thead>
+              <tbody id="learningRows"></tbody>
+            </table>
+          </article>
+        </section>
 
-      <section class="layout">
-        <article class="panel">
-          <h2>运行态</h2>
-          <div id="runtimeOverview" class="cards"></div>
-          <h3>会话分布</h3>
-          <table>
-            <thead>
-              <tr><th>会话</th><th>轮次数</th><th>最近活跃</th></tr>
-            </thead>
-            <tbody id="sessionRows"></tbody>
-          </table>
-        </article>
+        <section id="page-skills" class="page">
+          <h2>Skill 资产库</h2>
+          <div id="skillsKpis" class="cards"></div>
+          <article class="panel">
+            <h3>管理中 Skill（表格）</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Skill ID</th><th>标题</th><th>类型</th><th>生命周期</th><th>质量</th><th>使用</th><th>成功/失败</th><th>最近更新</th><th>来源</th>
+                </tr>
+              </thead>
+              <tbody id="skillsAssetRows"></tbody>
+            </table>
+          </article>
+        </section>
 
-        <article class="panel">
-          <h2>路由统计</h2>
-          <table>
-            <thead>
-              <tr><th>路由</th><th>次数</th></tr>
-            </thead>
-            <tbody id="routeRows"></tbody>
-          </table>
-          <h3>自我模型</h3>
-          <pre id="selfModelBox"></pre>
-        </article>
+        <section id="page-audit" class="page">
+          <h2>系统审计</h2>
+          <article class="panel">
+            <h3>Skill 过程事件</h3>
+            <table>
+              <thead><tr><th>时间</th><th>会话/Trace</th><th>阶段</th><th>路由/模型</th><th>摘要</th></tr></thead>
+              <tbody id="auditProcessRows"></tbody>
+            </table>
+          </article>
+          <article class="panel">
+            <h3>Skill 生命周期迁移</h3>
+            <table>
+              <thead><tr><th>时间</th><th>Skill</th><th>迁移</th><th>原因</th></tr></thead>
+              <tbody id="auditLifecycleRows"></tbody>
+            </table>
+          </article>
+        </section>
       </section>
     </main>
 

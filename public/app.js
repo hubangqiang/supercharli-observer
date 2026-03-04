@@ -98,6 +98,7 @@ function renderRows(id, rows, cols) {
 
 function zhProcessPhase(phase) {
   const map = {
+    'session-bootstrap': '会话启动预加载',
     'user-message': '用户消息',
     'skill-routing': '路由决策',
     'internal-skill-router-request': '隐式查询请求',
@@ -114,6 +115,10 @@ function zhProcessPhase(phase) {
 
 function processDetailPreview(phase, data) {
   const d = data && typeof data === 'object' ? data : {};
+  if (phase === 'session-bootstrap') {
+    const ids = Array.isArray(d.loadedSkillIds) ? d.loadedSkillIds.join(', ') : '-';
+    return `bootstrap: ${ids}`;
+  }
   if (phase === 'user-message' || phase === 'assistant-message') return clip(String(d.text || '-'), 220);
   if (phase === 'internal-skill-router-request') return clip(String(d.prompt || '-'), 220);
   if (phase === 'internal-skill-router-response') return clip(String(d.raw || '-'), 220);
